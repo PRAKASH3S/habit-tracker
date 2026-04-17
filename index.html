@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>Habit Forge — Daily Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg:#0a0a0f;--surface:#141419;--surface2:#1c1c24;--surface3:#25252f;
+--border:#2a2a36;--border-light:#35354a;
+--text:#e8e6f0;--text-muted:#8a889a;--text-dim:#5c5a6a;
+--accent:#7c6aff;--accent-glow:#7c6aff44;--accent-soft:#7c6aff22;
+--green:#34d399;--green-bg:#34d39918;--green-soft:#34d39933;
+--red:#f87171;--red-bg:#f8717118;
+--amber:#fbbf24;--amber-bg:#fbbf2418;
+--blue:#60a5fa;--blue-bg:#60a5fa18;
+--pink:#f472b6;--pink-bg:#f472b618;
+--teal:#2dd4bf;--teal-bg:#2dd4bf18;
+--coral:#fb923c;--coral-bg:#fb923c18;
+--font:'DM Sans',sans-serif;--mono:'Space Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::selection{background:var(--accent);color:#fff}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.app{max-width:1100px;margin:0 auto;padding:20px 16px 80px}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 20px var(--accent-glow)}
+.logo h1{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.logo span{color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:12px}
+.today-badge{font-family:var(--mono);font-size:12px;color:var(--text-muted);padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+
+/* Navigation */
+.nav{display:flex;gap:4px;margin-bottom:28px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border)}
+.nav-btn{flex:1;padding:10px 16px;border:none;background:none;color:var(--text-muted);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;border-radius:8px;transition:all .2s}
+.nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 0 16px var(--accent-glow)}
+.nav-btn:hover:not(.active){color:var(--text);background:var(--surface2)}
+
+/* Month Navigation */
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.month-nav button{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-family:var(--font);transition:all .15s}
+.month-nav button:hover{border-color:var(--accent);background:var(--surface2)}
+.month-title{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+.month-title span{color:var(--accent)}
+
+/* Mode Toggle */
+.controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.mode-toggle{display:flex;gap:4px;background:var(--surface);padding:3px;border-radius:8px;border:1px solid var(--border)}
+.mode-btn{padding:6px 14px;border:none;background:none;color:var(--text-muted);font-family:var(--font);font-size:12px;cursor:pointer;border-radius:6px;transition:all .15s;font-weight:500}
+.mode-btn.active{background:var(--surface3);color:var(--text)}
+.add-wrap{display:flex;gap:6px}
+.add-wrap input{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;font-family:var(--font);font-size:13px;width:180px}
+.add-wrap input::placeholder{color:var(--text-dim)}
+.add-wrap input:focus{outline:none;border-color:var(--accent)}
+.add-wrap button{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-family:var(--font);font-size:13px;cursor:pointer;font-weight:600;transition:transform .1s}
+.add-wrap button:active{transform:scale(0.96)}
+
+/* Habit Grid */
+.grid-container{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.grid-container table{width:100%;border-collapse:collapse;min-width:700px}
+.grid-container th,.grid-container td{padding:0;text-align:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.grid-container th:last-child,.grid-container td:last-child{border-right:none}
+.grid-container tr:last-child td{border-bottom:none}
+.grid-container thead th{font-size:11px;font-weight:500;color:var(--text-dim);padding:10px 2px 6px;background:var(--surface2);position:sticky;top:0;z-index:2}
+.grid-container thead th.h-name{text-align:left;padding-left:14px;font-size:13px;color:var(--text-muted);min-width:140px;width:140px}
+.day-num{font-family:var(--mono);font-size:11px;display:block}
+.day-letter{font-size:9px;color:var(--text-dim);display:block;margin-top:1px}
+.h-label{text-align:left;padding:8px 14px!important;font-size:13px;font-weight:600;min-width:140px;width:140px;position:relative}
+.h-label .delete-habit{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text-dim);cursor:pointer;opacity:0;transition:opacity .15s;background:none;border:none;padding:2px 4px}
+.h-label:hover .delete-habit{opacity:1}
+.h-label .delete-habit:hover{color:var(--red)}
+
+.cell{width:100%;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;font-size:12px;font-weight:700;font-family:var(--mono)}
+.cell:hover{background:var(--surface3)}
+.cell.done{background:var(--green-bg);color:var(--green)}
+.cell.s1{background:var(--red-bg);color:var(--red)}
+.cell.s2{background:var(--amber-bg);color:var(--amber)}
+.cell.s3{background:var(--blue-bg);color:var(--blue)}
+.cell.s4{background:var(--teal-bg);color:var(--teal)}
+.cell.s5{background:var(--green-bg);color:var(--green)}
+.cell.today-col{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.weekend{background:var(--surface2)!important}
+
+/* Legend */
+.legend{display:flex;gap:14px;margin:12px 0 0;font-size:11px;color:var(--text-muted);flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px}
+.swatch{width:12px;height:12px;border-radius:3px}
+
+/* Dashboard */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:28px}
+.m-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.m-card .label{font-size:12px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.m-card .value{font-size:28px;font-weight:700;font-family:var(--mono);letter-spacing:-1px}
+.m-card .sub{font-size:12px;color:var(--text-dim);margin-top:4px}
+.m-card.highlight{border-color:var(--accent);box-shadow:0 0 24px var(--accent-glow)}
+.m-card.highlight .value{color:var(--accent)}
+
+.section-title{font-size:16px;font-weight:700;margin:28px 0 14px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:3px;height:16px;background:var(--accent);border-radius:2px}
+
+/* Streaks */
+.streak-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.streak-row{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);transition:background .1s}
+.streak-row:last-child{border-bottom:none}
+.streak-row:hover{background:var(--surface2)}
+.streak-name{font-size:14px;font-weight:600}
+.streak-nums{display:flex;gap:24px}
+.streak-block{text-align:center}
+.streak-block .n{font-size:20px;font-weight:700;font-family:var(--mono)}
+.streak-block .l{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px}
+.streak-block.active .n{color:var(--green)}
+.streak-block.best .n{color:var(--accent)}
+
+/* Bars */
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bar-name{font-size:13px;width:140px;min-width:140px;flex-shrink:0;font-weight:500}
+.bar-track{flex:1;height:24px;background:var(--surface2);border-radius:6px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:5px;transition:width .4s ease-out;position:relative}
+.bar-pct{font-size:13px;font-weight:700;font-family:var(--mono);width:44px;text-align:right;flex-shrink:0}
+
+/* Chart */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:16px}
+.chart-inner{position:relative;width:100%;height:280px}
+
+/* Heatmap */
+.heatmap-wrap{margin-top:16px}
+.heatmap-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.heatmap-label{font-size:12px;width:130px;min-width:130px;flex-shrink:0;font-weight:500;color:var(--text-muted)}
+.heatmap-cell{width:16px;height:16px;border-radius:3px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0}
+.heatmap-cell.h1{background:var(--red-bg);border-color:var(--red)}
+.heatmap-cell.h2{background:var(--amber-bg);border-color:var(--amber)}
+.heatmap-cell.h3{background:var(--blue-bg);border-color:var(--blue)}
+.heatmap-cell.h4{background:var(--teal-bg);border-color:var(--teal)}
+.heatmap-cell.h5,.heatmap-cell.hdone{background:var(--green-bg);border-color:var(--green)}
+
+/* Responsive */
+@media(max-width:600px){
+.app{padding:12px 10px 80px}
+.header{flex-direction:column;align-items:flex-start;gap:10px}
+.month-title{font-size:18px}
+.controls{flex-direction:column;align-items:flex-start}
+.add-wrap{width:100%}
+.add-wrap input{flex:1}
+.metrics-grid{grid-template-columns:1fr 1fr}
+.bar-name{width:100px;min-width:100px;font-size:12px}
+.heatmap-label{width:80px;min-width:80px;font-size:11px}
+.heatmap-cell{width:12px;height:12px}
+}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeUp .35s ease-out both}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header">
+<div class="logo">
+<div class="logo-icon">&#9878;</div>
+<h1>Habit<span>Forge</span></h1>
+</div>
+<div class="header-right">
+<span class="today-badge" id="todayBadge"></span>
+</div>
+</header>
+
+<nav class="nav">
+<button class="nav-btn active" onclick="showTab('tracker')">Tracker</button>
+<button class="nav-btn" onclick="showTab('dashboard')">Dashboard</button>
+</nav>
+
+<div id="trackerTab">
+<div class="month-nav">
+<button onclick="changeMonth(-1)">&larr; Prev</button>
+<div class="month-title" id="monthLabel"></div>
+<button onclick="changeMonth(1)">Next &rarr;</button>
+</div>
+<div class="controls">
+<div class="mode-toggle">
+<button class="mode-btn active" id="modeYN" onclick="setMode('yn')">Done / Not done</button>
+<button class="mode-btn" id="modeScale" onclick="setMode('scale')">Quality 1–5</button>
+</div>
+<div class="add-wrap">
+<input type="text" id="newHabit" placeholder="Add new habit..." onkeydown="if(event.key==='Enter')addHabit()">
+<button onclick="addHabit()">+ Add</button>
+</div>
+</div>
+<div class="grid-container animate-in"><table id="habitGrid"></table></div>
+<div class="legend" id="legend"></div>
+</div>
+
+<div id="dashboardTab" style="display:none">
+<div class="month-nav">
+<button onclick="changeMonth(-1)">&larr; Prev</button>
+<div class="month-title" id="monthLabel2"></div>
+<button onclick="changeMonth(1)">Next &rarr;</button>
+</div>
+<div class="metrics-grid" id="metricsGrid"></div>
+
+<div class="section-title">Streaks</div>
+<div class="streak-card" id="streakCard"></div>
+
+<div class="section-title">Monthly completion</div>
+<div id="habitBars"></div>
+
+<div class="section-title">Heatmap</div>
+<div class="heatmap-wrap" id="heatmap"></div>
+
+<div class="section-title">Weekly trends</div>
+<div class="chart-wrap"><div class="chart-inner"><canvas id="weeklyChart" role="img" aria-label="Weekly completion trend chart"></canvas></div></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DEFAULT_HABITS=[
+{id:'exercise',name:'Exercise / Gym'},
+{id:'reading',name:'Reading'},
+{id:'coding',name:'Coding / Side projects'},
+{id:'prayer',name:'Prayer / Devotional'},
+{id:'jobs',name:'Job apps (20/day)'},
+{id:'project',name:'Build 1 project/wk'},
+{id:'wakeup',name:'Wake up by 6 AM'}
+];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const COLORS=['#7c6aff','#34d399','#60a5fa','#f472b6','#fb923c','#fbbf24','#2dd4bf'];
+const COLORS_BG=['#7c6aff22','#34d39922','#60a5fa22','#f472b622','#fb923c22','#fbbf2422','#2dd4bf22'];
+
+let habits=JSON.parse(JSON.stringify(DEFAULT_HABITS));
+let data={};
+let currentYear,currentMonth,mode='yn',chartInstance=null;
+
+function loadData(){
+const d=localStorage.getItem('hf_data');if(d)data=JSON.parse(d);
+const h=localStorage.getItem('hf_habits');if(h)habits=JSON.parse(h);
+}
+function saveData(){localStorage.setItem('hf_data',JSON.stringify(data))}
+function saveHabits(){localStorage.setItem('hf_habits',JSON.stringify(habits))}
+function k(y,m,d,id){return`${y}-${m}-${d}-${id}`}
+function dim(y,m){return new Date(y,m+1,0).getDate()}
+
+function showTab(t){
+document.getElementById('trackerTab').style.display=t==='tracker'?'':'none';
+document.getElementById('dashboardTab').style.display=t==='dashboard'?'':'none';
+document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===(t==='tracker'?0:1)));
+if(t==='dashboard')renderDashboard();
+}
+
+function changeMonth(d){
+currentMonth+=d;
+if(currentMonth>11){currentMonth=0;currentYear++}
+if(currentMonth<0){currentMonth=11;currentYear--}
+render();
+}
+
+function setMode(m){
+mode=m;
+document.getElementById('modeYN').classList.toggle('active',m==='yn');
+document.getElementById('modeScale').classList.toggle('active',m==='scale');
+renderLegend();renderGrid();
+}
+
+function renderLegend(){
+const el=document.getElementById('legend');
+if(mode==='yn'){
+el.innerHTML='<span class="legend-item"><span class="swatch" style="background:var(--green-bg);border:1px solid var(--green)"></span>Done</span><span class="legend-item"><span class="swatch" style="background:var(--surface2);border:1px solid var(--border)"></span>Not done</span>';
+}else{
+el.innerHTML=`
+<span class="legend-item"><span class="swatch" style="background:var(--red-bg);border:1px solid var(--red)"></span>1 Poor</span>
+<span class="legend-item"><span class="swatch" style="background:var(--amber-bg);border:1px solid var(--amber)"></span>2 Fair</span>
+<span class="legend-item"><span class="swatch" style="background:var(--blue-bg);border:1px solid var(--blue)"></span>3 Good</span>
+<span class="legend-item"><span class="swatch" style="background:var(--teal-bg);border:1px solid var(--teal)"></span>4 Great</span>
+<span class="legend-item"><span class="swatch" style="background:var(--green-bg);border:1px solid var(--green)"></span>5 Excellent</span>`;
+}
+}
+
+function addHabit(){
+const inp=document.getElementById('newHabit'),name=inp.value.trim();
+if(!name)return;
+habits.push({id:'c_'+Date.now(),name});
+inp.value='';saveHabits();render();
+}
+
+function removeHabit(id){
+if(!confirm('Remove this habit? Data will be kept.'))return;
+habits=habits.filter(h=>h.id!==id);
+saveHabits();render();
+}
+
+function cellClick(d,hid){
+const key=k(currentYear,currentMonth,d,hid);
+if(mode==='yn'){data[key]=data[key]?0:1}
+else{const c=data[key]||0;data[key]=c>=5?0:c+1}
+saveData();renderGrid();
+}
+
+function renderGrid(){
+const days=dim(currentYear,currentMonth);
+const today=new Date();
+const isThisMonth=currentYear===today.getFullYear()&&currentMonth===today.getMonth();
+let html='<thead><tr><th class="h-name">Habit</th>';
+for(let d=1;d<=days;d++){
+const dt=new Date(currentYear,currentMonth,d);
+const dn=['S','M','T','W','T','F','S'][dt.getDay()];
+html+=`<th><span class="day-letter">${dn}</span><span class="day-num">${d}</span></th>`;
+}
+html+='</tr></thead><tbody>';
+habits.forEach(h=>{
+html+=`<tr><td class="h-label">${h.name}<button class="delete-habit" onclick="removeHabit('${h.id}')" title="Remove">&times;</button></td>`;
+for(let d=1;d<=days;d++){
+const key=k(currentYear,currentMonth,d,h.id);
+const v=data[key]||0;
+const dt=new Date(currentYear,currentMonth,d);
+const isWeekend=dt.getDay()===0||dt.getDay()===6;
+const isToday=isThisMonth&&d===today.getDate();
+let cls='cell';
+if(isWeekend)cls+=' weekend';
+if(isToday)cls+=' today-col';
+let txt='';
+if(mode==='yn'){if(v>=1){cls+=' done';txt='✓'}}
+else{if(v>0){cls+=` s${v}`;txt=v}}
+html+=`<td><div class="${cls}" onclick="cellClick(${d},'${h.id}')">${txt}</div></td>`;
+}
+html+='</tr>';
+});
+html+='</tbody>';
+document.getElementById('habitGrid').innerHTML=html;
+}
+
+function render(){
+const ml=`${MONTHS[currentMonth]} <span>${currentYear}</span>`;
+document.getElementById('monthLabel').innerHTML=ml;
+document.getElementById('monthLabel2').innerHTML=ml;
+const now=new Date();
+document.getElementById('todayBadge').textContent=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+renderLegend();renderGrid();
+if(document.getElementById('dashboardTab').style.display!=='none')renderDashboard();
+}
+
+function getStreak(hid){
+let cur=0,longest=0,s=0;
+const d=new Date();
+while(cur<3000){
+const key=k(d.getFullYear(),d.getMonth(),d.getDate(),hid);
+if(data[key]&&data[key]>=1){cur++;d.setDate(d.getDate()-1)}else break;
+}
+const keys=Object.keys(data).filter(x=>x.endsWith('-'+hid)&&data[x]>=1);
+const dates=keys.map(x=>{const p=x.split('-');return new Date(+p[0],+p[1],+p[2])}).sort((a,b)=>a-b);
+for(let i=0;i<dates.length;i++){
+if(i===0)s=1;
+else{const diff=Math.round((dates[i]-dates[i-1])/864e5);s=diff===1?s+1:1}
+if(s>longest)longest=s;
+}
+return{current:cur,longest};
+}
+
+function getMonthPct(hid){
+const days=dim(currentYear,currentMonth);
+const today=new Date();
+const isThisMonth=currentYear===today.getFullYear()&&currentMonth===today.getMonth();
+const maxDay=isThisMonth?today.getDate():days;
+let done=0;
+for(let d=1;d<=maxDay;d++){const key=k(currentYear,currentMonth,d,hid);if(data[key]&&data[key]>=1)done++}
+return Math.round((done/maxDay)*100);
+}
+
+function getWeeklyData(){
+const days=dim(currentYear,currentMonth);
+let weeks=[],week=[];
+for(let d=1;d<=days;d++){
+week.push(d);
+const dt=new Date(currentYear,currentMonth,d);
+if(dt.getDay()===6||d===days){weeks.push(week);week=[]}
+}
+return weeks.map((w,i)=>({
+label:'W'+(i+1),
+habits:habits.map(h=>{
+let done=0;
+w.forEach(d=>{const key=k(currentYear,currentMonth,d,h.id);if(data[key]&&data[key]>=1)done++});
+return Math.round((done/w.length)*100);
+})
+}));
+}
+
+function renderDashboard(){
+const days=dim(currentYear,currentMonth);
+const today=new Date();
+const isThisMonth=currentYear===today.getFullYear()&&currentMonth===today.getMonth();
+const maxDay=isThisMonth?today.getDate():days;
+
+let totalDone=0;
+habits.forEach(h=>{for(let d=1;d<=maxDay;d++){const key=k(currentYear,currentMonth,d,h.id);if(data[key]&&data[key]>=1)totalDone++}});
+const overallPct=habits.length*maxDay>0?Math.round((totalDone/(habits.length*maxDay))*100):0;
+const best=habits.reduce((b,h)=>{const p=getMonthPct(h.id);return p>b.p?{name:h.name,p}:b},{name:'-',p:0});
+const streaks=habits.map(h=>({...h,...getStreak(h.id)}));
+const topStreak=streaks.reduce((a,b)=>b.current>a.current?b:a,{current:0,name:'-'});
+
+document.getElementById('metricsGrid').innerHTML=`
+<div class="m-card highlight animate-in"><div class="label">Overall consistency</div><div class="value">${overallPct}%</div><div class="sub">${totalDone} / ${habits.length*maxDay} check-ins</div></div>
+<div class="m-card animate-in" style="animation-delay:.05s"><div class="label">Best habit</div><div class="value" style="font-size:18px;color:var(--green)">${best.name}</div><div class="sub">${best.p}% this month</div></div>
+<div class="m-card animate-in" style="animation-delay:.1s"><div class="label">Top active streak</div><div class="value" style="color:var(--green)">${topStreak.current}d</div><div class="sub">${topStreak.name}</div></div>
+<div class="m-card animate-in" style="animation-delay:.15s"><div class="label">Habits tracked</div><div class="value">${habits.length}</div><div class="sub">${MONTHS[currentMonth]} ${currentYear}</div></div>`;
+
+let shtml='';
+streaks.forEach(s=>{
+shtml+=`<div class="streak-row"><span class="streak-name">${s.name}</span><div class="streak-nums">
+<div class="streak-block active"><div class="n">${s.current}</div><div class="l">Current</div></div>
+<div class="streak-block best"><div class="n">${s.longest}</div><div class="l">Best</div></div>
+</div></div>`;
+});
+document.getElementById('streakCard').innerHTML=shtml;
+
+let bhtml='';
+habits.forEach((h,i)=>{
+const p=getMonthPct(h.id);
+bhtml+=`<div class="bar-row"><span class="bar-name">${h.name}</span><div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${COLORS[i%COLORS.length]}"></div></div><span class="bar-pct" style="color:${COLORS[i%COLORS.length]}">${p}%</span></div>`;
+});
+document.getElementById('habitBars').innerHTML=bhtml;
+
+// Heatmap
+let hmhtml='';
+habits.forEach((h,idx)=>{
+hmhtml+=`<div class="heatmap-row"><span class="heatmap-label">${h.name}</span>`;
+for(let d=1;d<=days;d++){
+const key=k(currentYear,currentMonth,d,h.id);
+const v=data[key]||0;
+let cls='heatmap-cell';
+if(mode==='yn'||v===0){if(v>=1)cls+=' hdone'}
+else{if(v>0)cls+=` h${v}`}
+hmhtml+=`<div class="${cls}" title="Day ${d}: ${v||'—'}"></div>`;
+}
+hmhtml+='</div>';
+});
+document.getElementById('heatmap').innerHTML=hmhtml;
+
+// Weekly chart
+const weekly=getWeeklyData();
+const datasets=habits.map((h,i)=>({
+label:h.name,data:weekly.map(w=>w.habits[i]),
+borderColor:COLORS[i%COLORS.length],
+backgroundColor:COLORS_BG[i%COLORS_BG.length],
+tension:.3,pointRadius:4,borderWidth:2,fill:false
+}));
+if(chartInstance)chartInstance.destroy();
+chartInstance=new Chart(document.getElementById('weeklyChart'),{
+type:'line',
+data:{labels:weekly.map(w=>w.label),datasets},
+options:{responsive:true,maintainAspectRatio:false,
+scales:{
+y:{min:0,max:100,ticks:{callback:v=>v+'%',color:'#5c5a6a',font:{size:11}},grid:{color:'#2a2a36'}},
+x:{ticks:{color:'#5c5a6a',font:{size:11}},grid:{display:false}}
+},
+plugins:{legend:{position:'bottom',labels:{color:'#8a889a',boxWidth:10,font:{size:11,family:'DM Sans'}}}}
+}
+});
+}
+
+// Init
+loadData();
+const now=new Date();
+currentYear=now.getFullYear();
+currentMonth=now.getMonth();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "HabitForge — Daily Tracker",
+  "short_name": "HabitForge",
+  "description": "Track habits daily. Evaluate monthly.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#7c6aff",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%237c6aff'/><text x='50' y='68' text-anchor='middle' font-size='50' fill='white'>⚶</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
